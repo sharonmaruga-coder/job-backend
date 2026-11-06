@@ -1,29 +1,35 @@
 const Application = require('../models/application');
-const Job = require('../models/job');
-const Assignment = require('../models/assignment');
 
-// Employee apply for a job
-exports.applyForJob = async (req, res) => {
+exports.createApplication = async (req, res) => {
   try {
-    const app = await Application.create(req.body);
-    res.status(201).json(app);
+    const { job_id, student_id, cover_letter } = req.body;
+    const id = await Application.create(job_id, student_id, cover_letter);
+    res.status(201).json({ message: 'Application submitted', id });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
-
-// Employer sees applicants for a job
-exports.getApplicationsForJob = async (req, res) => {
+exports.getApplicationsByJob = async (req, res) => {
   try {
-    const apps = await Application.find({ job: req.params.jobId }).populate('job');
+    const apps = await Application.getByJobId(req.params.jobId);
     res.json(apps);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
-
-// View all applications
-exports.getAllApplications = async (req, res) => {
-  const apps = await Application.find().populate('job');
-  res.json(apps);
+exports.getApplicationsByStudent = async (req, res) => {
+  try {
+    const apps = await Application.getByStudentId(req.params.studentId);
+    res.json(apps);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+exports.updateStatus = async (req, res) => {
+  try {
+    await Application.updateStatus(req.params.id, req.body.status);
+    res.json({ message: 'Status updated' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };

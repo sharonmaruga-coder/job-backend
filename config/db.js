@@ -1,10 +1,12 @@
-const mongoose = require('mongoose');
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('MongoDB Connected');
-  } catch (err) {
-    console.log('Error:', err.message);
-  }
-};
-module.exports = connectDB;
+const mysql = require('mysql2/promise');
+
+const db = mysql.createPool({
+  host: 'localhost',
+  user: 'root',
+  password: '', // put your MySQL password here
+  database: 'gig_platform',
+  waitForConnections: true,
+  connectionLimit: 10
+});
+
+module.exports = db;

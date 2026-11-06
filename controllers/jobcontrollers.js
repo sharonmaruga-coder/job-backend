@@ -1,76 +1,35 @@
 const Job = require('../models/job');
-const Category = require('../models/categories');
 
-// 1. CREATE JOB
 exports.createJob = async (req, res) => {
   try {
-    const job = await Job.create(req.body);
-    res.status(201).json(job);
+    const { title, description, employer_id, pay, location } = req.body;
+    const id = await Job.create(title, description, employer_id, pay, location);
+    res.status(201).json({ message: 'Job created', id });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
-
-// 2. VIEW JOBS with search, filter, status
-exports.getJobs = async (req, res) => {
+exports.getAllJobs = async (req, res) => {
   try {
-    const { search, category, status } = req.query;
-    let filter = {};
-    if (search) filter.title = { $regex: search, $options: 'i' };
-    if (category) filter.category = category;
-    if (status) filter.status = status;
-    const jobs = await Job.find(filter).populate('category').sort({ createdAt: -1 });
+    const jobs = await Job.getAll();
     res.json(jobs);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
-
-// 3. VIEW ONE
-exports.getJob = async (req, res) => {
+exports.getJobById = async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id).populate('category');
+    const job = await Job.getById(req.params.id);
     if (!job) return res.status(404).json({ message: 'Job not found' });
     res.json(job);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
-
-// 4. EDIT
-exports.updateJob = async (req, res) => {
-  try {
-    const job = await Job.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(job);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-};
-
-// 5. DELETE / CLOSE
 exports.deleteJob = async (req, res) => {
   try {
-    const job = await Job.findByIdAndUpdate(req.params.id, { status: 'closed' }, { new: true });
-    res.json({ message: 'Job closed', job });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// CATEGORIES
-exports.createCategory = async (req, res) => {
-  try {
-    const cat = await Category.create(req.body);
-    res.status(201).json(cat);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-};
-
-exports.getCategories = async (req, res) => {
-  try {
-    const cats = await Category.find();
-    res.json(cats);
+    await Job.delete(req.params.id);
+    res.json({ message: 'Job deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
